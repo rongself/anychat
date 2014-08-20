@@ -1,9 +1,19 @@
 #!/usr/bin/env node
 var debug = require('debug')('anychat');
 var app = require('../app');
+var http = require('http').Server(app);
+var io = require('socket.io').listen(http);
 
 app.set('port', process.env.PORT || 3000);
-
-var server = app.listen(app.get('port'), function() {
-  debug('Express server listening on port ' + server.address().port);
+http.listen(app.get('port'));
+io.on('connection',function(socket){
+    console.log('some one connected');
+    socket.on('message_send',function(msg){
+        if(msg!=''){
+            io.emit('message_send',msg);
+        }
+    });
+    socket.on('disconnect',function(socket){
+        console.log('some one disconnected');
+    });
 });
