@@ -68,24 +68,29 @@
 <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 <script>
     var socket = io();
-    var chatName = prompt("输入聊天时显示的昵称","请在这里输入");
+    var chatName = prompt("你是谁","");
+    chatName = chatName?chatName:'拉屎星人';
+    socket.emit('online',chatName);
     var message = function(name,content,time){
         this.name = name;
         this.content = content;
         this.time = time?time:new Date();
     }
     $('#chat_form').submit(function(){
-        var msg = new message(chatName?chatName:'拉屎星人',$('#m').val(),null);
+        var msg = new message(chatName,$('#m').val(),null);
         if(msg.content!=''){
             socket.emit('message_send',msg);
             $('#m').val('');
         }else{
-            alert('不能发送空消息你这逗比')
+            alert('不能发送空消息你这逗比');
         }
         return false;
     });
     socket.on('message_send',function(msg){
-        $('#messages').append($('<div class="alert alert-info chat-message" role="alert">').text(msg.name + ' : '+msg.content));
+        $('#messages').append($('<div class="alert alert-info chat-message" role="alert">').text(msg.name+'(' +msg.time+ ') : '+msg.content));
+    });
+    socket.on('online',function(username){
+        $('#messages').append($('<div class="alert alert-success chat-message" role="alert">').text(username + ' 上线'));
     });
 </script>
 </body>

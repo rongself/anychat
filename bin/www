@@ -6,14 +6,35 @@ var io = require('socket.io').listen(http);
 
 app.set('port', process.env.PORT || 3000);
 http.listen(app.get('port'));
+var onlineList = [];
+var message = function(name,content,time){
+    this.name = name;
+    this.content = content;
+    this.time = time?time:new Date();
+}
 io.on('connection',function(socket){
-    console.log('some one connected');
+    socket.on('online',function(username){
+        if(username!=''){
+            io.emit('online',username);
+            onlineList.push({id:socket.id,username:username});
+            console.log(onlineList);
+        }
+    });
     socket.on('message_send',function(msg){
-        if(msg!=''){
-            io.emit('message_send',msg);
+        if(msg.content!=''){
+            if(msg.content=='user -l'){
+                var count = onlineList.length;
+                var content = '(总共'+count+'人)\n';
+                for(var i =0;i<count;i++){
+                    content += i+1+'.'+onlineList[i].username+' ';
+                }
+                io.emit('message_send',new message('system',content));
+            }else{
+                io.emit('message_send',msg);
+            }
         }
     });
     socket.on('disconnect',function(socket){
-        console.log('some one disconnected');
+        console.log(socket);
     });
 });
