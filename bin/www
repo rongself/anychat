@@ -1,40 +1,47 @@
 #!/usr/bin/env node
-var debug = require('debug')('anychat');
+var debug = require('debug')('');
 var app = require('../app');
 var http = require('http').Server(app);
 var io = require('socket.io').listen(http);
 
 app.set('port', process.env.PORT || 3000);
 http.listen(app.get('port'));
-var onlineList = [];
+var userList = [];
 var message = function(name,content,time){
     this.name = name;
     this.content = content;
     this.time = time?time:new Date();
 }
+var user = function(id,username,time){
+    this.id = id;
+    this.username = username;
+    this.time = time?time:new Date();
+}
 io.on('connection',function(socket){
+    userList[socket.id] = new user(socket.id);
     socket.on('online',function(username){
         if(username!=''){
             io.emit('online',username);
-            onlineList.push({id:socket.id,username:username});
-            console.log(onlineList);
+            userList[socket.id].username = username;
         }
     });
     socket.on('message_send',function(msg){
         if(msg.content!=''){
             if(msg.content=='user -l'){
-                var count = onlineList.length;
-                var content = '(总共'+count+'人)\n';
-                for(var i =0;i<count;i++){
-                    content += i+1+'.'+onlineList[i].username+' ';
+                var count = 0;
+                var content = '';
+                for(var key in userList){
+                    count ++;
+                    content += count+'.'+userList[key].username+' |';
                 }
-                io.emit('message_send',new message('system',content));
+                io.emit('message_send',new message('system','(总共'+count+'人)'+content));
             }else{
                 io.emit('message_send',msg);
             }
         }
     });
-    socket.on('disconnect',function(socket){
-        console.log(socket);
+    socket.on('disconnect',function(){
+        io.emit('offline',userList[socket.id].username);
+        delete userList[socket.id];
     });
 });
