@@ -7,4 +7,4 @@ anychat
 
 总觉得写聊天程序是一件很有趣的事
 
-Demo 地址:[http://ronccc.tk:3000/](http://ronccc.tk:3000/)
+Demo 地址:[http://ronccc.com:3000/](http://ronccc.com:3000/)
